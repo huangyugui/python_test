@@ -1,0 +1,152 @@
+<html style="margin:0;padding:0;">
+<div style="background-color:transparent;box-sizing:border-box;font-family:'Roboto','PingFang SC','Segoe UI',Arial,sans-serif;color:#1A1B1C;max-width:780px;margin:0 auto;padding:4px 2px;--accent:#8BC8EA;line-height:1.5;">
+
+  <!-- 顶部：核心矛盾 -->
+  <div style="display:flex;align-items:stretch;gap:10px;flex-wrap:wrap;margin:8px 0 14px;">
+    <div style="flex:1 1 220px;min-width:0;padding:12px 14px;background:rgba(139,200,234,0.12);border:1px solid rgba(139,200,234,0.5);border-radius:12px;box-sizing:border-box;">
+      <div style="font-size:11px;color:#6B7280;">问题来源</div>
+      <div style="font-size:14px;font-weight:600;margin-top:2px;">Agent 会话持续增长</div>
+      <div style="font-size:12px;color:#6B7280;margin-top:2px;">工具调用记录、多轮对话、检索结果不断累积</div>
+    </div>
+    <div style="flex:0 0 auto;align-self:center;font-size:18px;color:#6B7280;padding:0 2px;">→</div>
+    <div style="flex:1 1 220px;min-width:0;padding:12px 14px;background:rgba(26,27,28,0.04);border:1px solid rgba(0,0,0,0.08);border-radius:12px;box-sizing:border-box;">
+      <div style="font-size:11px;color:#6B7280;">硬约束</div>
+      <div style="font-size:14px;font-weight:600;margin-top:2px;">LLM 上下文窗口有限</div>
+      <div style="font-size:12px;color:#6B7280;margin-top:2px;">超窗即截断/报错，成本随 token 数上升</div>
+    </div>
+    <div style="flex:1 1 100%;min-width:0;padding:8px 12px;background:rgba(26,27,28,0.03);border-radius:10px;box-sizing:border-box;font-size:12.5px;color:#1A1B1C;">
+      <b style="color:#4A7FA8;">核心目标</b>：在有限窗口内，以最小代价保留对后续决策<b>最高价值</b>的信息 —— 5 大类常用策略如下
+    </div>
+  </div>
+
+  <!-- 策略族 1：直接丢弃 -->
+  <div style="margin:12px 0 4px;">
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+      <span style="background:#8BC8EA;color:#fff;font-size:11px;font-weight:600;padding:2px 10px;border-radius:999px;">族 1</span>
+      <span style="font-size:14px;font-weight:600;">直接丢弃</span>
+      <span style="font-size:11px;color:#6B7280;">最省事，只解决"超窗"，不解决"失忆"</span>
+    </div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;">
+      <div style="flex:1 1 320px;min-width:0;padding:12px 14px;background:#FFFFFF;border:1px solid rgba(0,0,0,0.08);border-radius:12px;box-sizing:border-box;">
+        <div style="font-size:13.5px;font-weight:600;color:#4A7FA8;">① 滑动窗口 / 截断</div>
+        <div style="font-size:12px;margin-top:4px;">只保留最近 N 轮消息或 N 个 token，其余直接丢弃</div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;font-size:11px;">
+          <span style="background:rgba(82,196,26,0.12);color:#389E0D;padding:2px 8px;border-radius:6px;">实现简单 · 零开销 · 可控性强</span>
+          <span style="background:rgba(234,102,104,0.10);color:#C0392B;padding:2px 8px;border-radius:6px;">早期目标/约束/用户偏好全丢</span>
+        </div>
+        <div style="font-size:11px;color:#6B7280;margin-top:6px;">典型实现：API 层按时间/条数裁剪消息数组；适合短会话、一次性任务</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 策略族 2：压缩提炼 -->
+  <div style="margin:14px 0 4px;">
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+      <span style="background:#9BBBF4;color:#fff;font-size:11px;font-weight:600;padding:2px 10px;border-radius:999px;">族 2</span>
+      <span style="font-size:14px;font-weight:600;">压缩提炼</span>
+      <span style="font-size:11px;color:#6B7280;">用更少 token 保住语义主线</span>
+    </div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;">
+      <div style="flex:1 1 320px;min-width:0;padding:12px 14px;background:#FFFFFF;border:1px solid rgba(0,0,0,0.08);border-radius:12px;box-sizing:border-box;">
+        <div style="font-size:13.5px;font-weight:600;color:#4A7FA8;">② 滚动摘要</div>
+        <div style="font-size:12px;margin-top:4px;">旧对话先让 LLM 压成一段摘要，摘要+新消息一起进入窗口</div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;font-size:11px;">
+          <span style="background:rgba(82,196,26,0.12);color:#389E0D;padding:2px 8px;border-radius:6px;">保留主线 · 支持长对话</span>
+          <span style="background:rgba(234,102,104,0.10);color:#C0392B;padding:2px 8px;border-radius:6px;">细节/数字有损 · 摘要可能失真</span>
+        </div>
+        <div style="font-size:11px;color:#6B7280;margin-top:6px;">典型实现：LangChain ConversationSummaryMemory；适合叙事型、目标型长对话</div>
+      </div>
+      <div style="flex:1 1 320px;min-width:0;padding:12px 14px;background:#FFFFFF;border:1px solid rgba(0,0,0,0.08);border-radius:12px;box-sizing:border-box;">
+        <div style="font-size:13.5px;font-weight:600;color:#4A7FA8;">③ 结构化记忆提取</div>
+        <div style="font-size:12px;margin-top:4px;">实时抽取实体、偏好、事实，写入画像/知识库，用时回填</div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;font-size:11px;">
+          <span style="background:rgba(82,196,26,0.12);color:#389E0D;padding:2px 8px;border-radius:6px;">精准 · 跨会话复用</span>
+          <span style="background:rgba(234,102,104,0.10);color:#C0392B;padding:2px 8px;border-radius:6px;">抽取有损 · 需维护更新</span>
+        </div>
+        <div style="font-size:11px;color:#6B7280;margin-top:6px;">典型实现：用户画像/属性表、知识图谱；适合个性化助手、长期陪伴场景</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 策略族 3：检索召回 -->
+  <div style="margin:14px 0 4px;">
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+      <span style="background:#A2DDAA;color:#fff;font-size:11px;font-weight:600;padding:2px 10px;border-radius:999px;">族 3</span>
+      <span style="font-size:14px;font-weight:600;">检索召回</span>
+      <span style="font-size:11px;color:#6B7280;">按需取回，不占窗口常驻</span>
+    </div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;">
+      <div style="flex:1 1 320px;min-width:0;padding:12px 14px;background:#FFFFFF;border:1px solid rgba(0,0,0,0.08);border-radius:12px;box-sizing:border-box;">
+        <div style="font-size:13.5px;font-weight:600;color:#4A7FA8;">④ 向量检索（RAG 式记忆）</div>
+        <div style="font-size:12px;margin-top:4px;">历史消息/知识切块向量化入库，根据当前 query 语义相似度召回 Top-K 注入</div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;font-size:11px;">
+          <span style="background:rgba(82,196,26,0.12);color:#389E0D;padding:2px 8px;border-radius:6px;">精确找回细节 · 可扩展</span>
+          <span style="background:rgba(234,102,104,0.10);color:#C0392B;padding:2px 8px;border-radius:6px;">需向量库/embedding · 检索质量不稳</span>
+        </div>
+        <div style="font-size:11px;color:#6B7280;margin-top:6px;">典型实现：向量数据库 + 重排序；适合知识密集、需引用旧事实的 Agent</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 策略族 4：分级管理 -->
+  <div style="margin:14px 0 4px;">
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+      <span style="background:#C9A7E8;color:#fff;font-size:11px;font-weight:600;padding:2px 10px;border-radius:999px;">族 4</span>
+      <span style="font-size:14px;font-weight:600;">分级管理</span>
+      <span style="font-size:11px;color:#6B7280;">把窗口当"内存"来设计</span>
+    </div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;">
+      <div style="flex:1 1 320px;min-width:0;padding:12px 14px;background:#FFFFFF;border:1px solid rgba(0,0,0,0.08);border-radius:12px;box-sizing:border-box;">
+        <div style="font-size:13.5px;font-weight:600;color:#4A7FA8;">⑤ 虚拟内存换页（MemGPT/Letta 式）</div>
+        <div style="font-size:12px;margin-top:4px;">主上下文=工作内存，外部存储=磁盘；按需把旧块换出/换入，像 OS 管理内存</div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;font-size:11px;">
+          <span style="background:rgba(82,196,26,0.12);color:#389E0D;padding:2px 8px;border-radius:6px;">窗口利用率高 · 支持超长会话</span>
+          <span style="background:rgba(234,102,104,0.10);color:#C0392B;padding:2px 8px;border-radius:6px;">实现复杂 · 换页策略难调</span>
+        </div>
+        <div style="font-size:11px;color:#6B7280;margin-top:6px;">典型实现：Letta/MemGPT 框架；适合多任务、持续运行的 Agent</div>
+      </div>
+      <div style="flex:1 1 320px;min-width:0;padding:12px 14px;background:#FFFFFF;border:1px solid rgba(0,0,0,0.08);border-radius:12px;box-sizing:border-box;">
+        <div style="font-size:13.5px;font-weight:600;color:#4A7FA8;">⑥ 重要性/优先级修剪</div>
+        <div style="font-size:12px;margin-top:4px;">给每条消息按重要性、时效性、相关性打分，低分先淘汰</div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;font-size:11px;">
+          <span style="background:rgba(82,196,26,0.12);color:#389E0D;padding:2px 8px;border-radius:6px;">保高价值信息 · 可控</span>
+          <span style="background:rgba(234,102,104,0.10);color:#C0392B;padding:2px 8px;border-radius:6px;">打分规则难设计 · 可能误杀</span>
+        </div>
+        <div style="font-size:11px;color:#6B7280;margin-top:6px;">典型实现：LLM 打分/启发式规则混合；适合工具调用密集的复杂 Agent</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 策略族 5：隔离分工 -->
+  <div style="margin:14px 0 4px;">
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+      <span style="background:#F4B393;color:#fff;font-size:11px;font-weight:600;padding:2px 10px;border-radius:999px;">族 5</span>
+      <span style="font-size:14px;font-weight:600;">隔离分工</span>
+      <span style="font-size:11px;color:#6B7280;">不让单个窗口扛全部记忆</span>
+    </div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;">
+      <div style="flex:1 1 320px;min-width:0;padding:12px 14px;background:#FFFFFF;border:1px solid rgba(0,0,0,0.08);border-radius:12px;box-sizing:border-box;">
+        <div style="font-size:13.5px;font-weight:600;color:#4A7FA8;">⑦ 多 Agent 上下文隔离</div>
+        <div style="font-size:12px;margin-top:4px;">子 Agent 各自维护独立上下文，主 Agent 只接收结构化结果/摘要</div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;font-size:11px;">
+          <span style="background:rgba(82,196,26,0.12);color:#389E0D;padding:2px 8px;border-radius:6px;">防上下文污染 · 可并行扩展</span>
+          <span style="background:rgba(234,102,104,0.10);color:#C0392B;padding:2px 8px;border-radius:6px;">传递有损 · 编排成本高</span>
+        </div>
+        <div style="font-size:11px;color:#6B7280;margin-top:6px;">典型实现：CrewAI/AutoGen/本系统 MoA 架构；适合分工明确的大型任务</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 底部：工程组合建议 -->
+  <div style="margin:16px 0 4px;padding:12px 14px;background:rgba(139,200,234,0.10);border:1px solid rgba(139,200,234,0.45);border-radius:12px;box-sizing:border-box;">
+    <div style="font-size:13px;font-weight:600;color:#4A7FA8;margin-bottom:6px;">工程实践：生产环境多为组合拳</div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;font-size:11.5px;color:#1A1B1C;">
+      <span style="flex:1 1 180px;min-width:0;padding:8px 10px;background:#FFFFFF;border-radius:8px;border:1px solid rgba(0,0,0,0.08);box-sizing:border-box;"><b>兜底层</b>：滑动窗口限长，防超窗崩溃</span>
+      <span style="flex:1 1 180px;min-width:0;padding:8px 10px;background:#FFFFFF;border-radius:8px;border:1px solid rgba(0,0,0,0.08);box-sizing:border-box;"><b>主线层</b>：滚动摘要 + 结构化记忆，保目标与偏好</span>
+      <span style="flex:1 1 180px;min-width:0;padding:8px 10px;background:#FFFFFF;border-radius:8px;border:1px solid rgba(0,0,0,0.08);box-sizing:border-box;"><b>细节层</b>：向量检索按需召回关键事实</span>
+    </div>
+    <div style="font-size:11px;color:#6B7280;margin-top:6px;">选择口诀：会话短→窗口裁剪；会话长→加摘要；要记细节→加检索；要跑复杂任务→分级或拆 Agent。</div>
+  </div>
+
+</div>
+</html>
